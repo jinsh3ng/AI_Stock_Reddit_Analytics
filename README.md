@@ -2,12 +2,16 @@
 
 > **Note:** This repository is shared as a code reference only. The database, API keys, and scraped data are private and not included — the project cannot be run directly without setting up your own data infrastructure. Feel free to use the code structure and implementation as a reference for building something similar.
 
-> **⚠️ The live demo is no longer maintained** as it incurs ongoing costs across multiple services — Railway hosting, AWS EC2, and rotating proxy subscriptions. This project is intended to demonstrate what I am capable of building. A video walkthrough is available below instead.
-
-**Video demo:** [https://drive.google.com/file/d/1-0RK0JnayIR3x_GgEBIya5ZQMXgq3_-Z/view?usp=drive_link](https://drive.google.com/file/d/1-0RK0JnayIR3x_GgEBIya5ZQMXgq3_-Z/view?usp=sharing)
+> **⚠️ The live demo is no longer maintained** as it incurs ongoing costs across multiple services — Railway hosting, AWS EC2, and rotating proxy subscriptions. This project is intended to demonstrate what I am capable of building. A video demonstration is available below.
 
 <p align="center">
-  <img width="1890" height="930" alt="image" src="https://github.com/user-attachments/assets/6aca9c1d-36b1-437f-ac76-4b364474887f" />
+  <a href="https://drive.google.com/file/d/1-0RK0JnayIR3x_GgEBIya5ZQMXgq3_-Z/view?usp=sharing">
+    <img width="1890" height="930" alt="Click to watch video demonstration" src="https://github.com/user-attachments/assets/6aca9c1d-36b1-437f-ac76-4b364474887f" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://drive.google.com/file/d/1-0RK0JnayIR3x_GgEBIya5ZQMXgq3_-Z/view?usp=sharing">▶ Watch Video Demonstration</a>
 </p>
 
 If you have any questions or see anything that can be improved, feel free to reach out:
