@@ -153,11 +153,52 @@ nohup ~/ai-stocks/venv/bin/python -u run_pipeline.py >> ~/ai-stocks/pipeline.log
 tail -f ~/ai-stocks/pipeline.log
 ```
 
-**5. Schedule weekly via cron:**
+**5. Create a startup script:**
+```bash
+nano ~/ai-stocks/startup.sh
+```
+
+Paste the following into the file:
+```bash
+#!/bin/bash
+sleep 30
+cd /home/ubuntu/ai-stocks
+source venv/bin/activate
+python -u run_pipeline.py >> /home/ubuntu/ai-stocks/pipeline.log 2>&1
+sudo shutdown -h now
+```
+
+Make it executable:
+```bash
+chmod +x ~/ai-stocks/startup.sh
+```
+
+**6. Configure it to run on every boot:**
 ```bash
 crontab -e
-# Add this line — runs every Monday at 9am UTC
-0 9 * * 1 /home/ubuntu/ai-stocks/venv/bin/python -u /home/ubuntu/ai-stocks/run_pipeline.py >> /home/ubuntu/ai-stocks/pipeline.log 2>&1
+# Add this line
+@reboot /home/ubuntu/ai-stocks/startup.sh
+```
+
+The instance boots up, waits 30 seconds to fully initialise, runs the pipeline, then shuts itself down automatically — so it only incurs cost during the scraping window.
+
+**7. Schedule weekly via EventBridge + Lambda:**
+
+Use AWS EventBridge to trigger a Lambda function every Monday that starts the EC2 instance. The startup script then handles the rest automatically.
+
+Lambda function:
+```python
+import boto3
+
+def lambda_handler(event, context):
+    ec2 = boto3.client('ec2', region_name='your-region')
+    ec2.start_instances(InstanceIds=['your-instance-id'])
+    return {'statusCode': 200, 'body': 'EC2 started'}
+```
+
+EventBridge cron expression (every Monday at 9am UTC):
+```
+cron(0 9 ? * MON *)
 ```
 
 ---
@@ -237,7 +278,3 @@ Currently the project scrapes Reddit only. Other platforms such as X (Twitter), 
 ### Classification Accuracy
 
 The current DeepSeek classification performs well but could be further validated against a manually labelled ground truth dataset for more rigorous accuracy measurement across relevance, sentiment, and topic assignment.
-
-### Price Correlation Analysis
-
-The post marker feature on the candlestick chart is a manual tool. An automated correlation analysis between post sentiment spikes and price movements would be a natural next step.
