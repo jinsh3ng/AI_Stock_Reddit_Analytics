@@ -10,8 +10,9 @@
 
 If you have any questions or see anything that can be improved, feel free to reach out:
 
-**Chong Jinsheng** &nbsp;·&nbsp; [LinkedIn](https://www.linkedin.com/in/jinsh3ng) &nbsp;·&nbsp; Jinsh3ng@hotmail.com
-
+- **Name:** Chong Jinsheng
+- **LinkedIn:** [www.linkedin.com/in/jinsh3ng](https://www.linkedin.com/in/jinsh3ng)
+- **Email:** Jinsh3ng@hotmail.com
 ---
 
 ## 1. Overview
