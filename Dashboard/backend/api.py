@@ -107,6 +107,11 @@ async def load_data_from_db():
         df = df[df["date"] >= pd.Timestamp("2025-05-01")]
         df = df.dropna(subset=["sentiment"])
         df = df[df["sentiment"].str.strip() != ""]
+        # Map bullish/bearish → positive/negative for frontend compatibility
+        df["sentiment"] = df["sentiment"].replace({
+            "bullish": "positive",
+            "bearish": "negative"
+        })
         df["_source"] = "reddit"
         _df_cache["ai_stocks"] = df
         print(f"✓ Loaded {len(df)} rows from cleaned_data_ai_stocks")
@@ -526,10 +531,10 @@ def get_volume(req: AnalyzeRequest):
             .resample(freq)
             .agg(
                 post_count   = ("sentiment", "count"),
-                pct_negative = ("sentiment", lambda x: (x == "bearish").mean()),
+                pct_negative = ("sentiment", lambda x: (x == "negative").mean()),
                 pct_mixed    = ("sentiment", lambda x: (x == "mixed").mean()),
                 pct_neutral  = ("sentiment", lambda x: (x == "neutral").mean()),
-                pct_positive = ("sentiment", lambda x: (x == "bullish").mean()),
+                pct_positive = ("sentiment", lambda x: (x == "positive").mean()),
             )
             .reset_index()
         )
@@ -578,7 +583,7 @@ def get_topics(req: TopicsRequest):
 
                 tw = df_plot["llm_topic"].value_counts().sort_values(ascending=True)
 
-                sentiments = ["bearish", "mixed", "neutral", "bullish"]
+                sentiments = ["negative", "mixed", "neutral", "positive"]
                 topic_sentiment = pd.crosstab(df_plot["llm_topic"], df_plot["sentiment"])
                 topic_sentiment = topic_sentiment.reindex(
                     index=tw.index,
