@@ -21,10 +21,10 @@ let _tradingDates = [];  // dates from loaded stock chart
 
 // ── Sentiment config ──
 const SENTIMENT_CONFIG = {
-  negative: { color: "#d62728", bg: "#fff5f5", label: "Negative" },
-  mixed:    { color: "#ff7f0e", bg: "#fff8f0", label: "Mixed"    },
-  neutral:  { color: "#1f77b4", bg: "#f0f6ff", label: "Neutral"  },
-  positive: { color: "#2ca02c", bg: "#f0fff4", label: "Positive" },
+  bearish: { color: "#d62728", bg: "#fff5f5", label: "Bearish" },
+  mixed:   { color: "#ff7f0e", bg: "#fff8f0", label: "Mixed"   },
+  neutral: { color: "#1f77b4", bg: "#f0f6ff", label: "Neutral" },
+  bullish: { color: "#2ca02c", bg: "#f0fff4", label: "Bullish" },
 };
 
 // ─────────────────────────────────────────
