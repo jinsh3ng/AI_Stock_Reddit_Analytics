@@ -83,7 +83,7 @@ AI-Stock-Reddit-Analytics/
 │
 ├── EDA/                                    # Exploratory data analysis notebooks
 │
-├── .env                                    # Environment variables (not included)
+├── .env                                    # Environment variables
 └── README.md
 ```
 
