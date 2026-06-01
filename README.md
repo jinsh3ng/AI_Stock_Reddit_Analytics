@@ -2,6 +2,8 @@
 
 > **Note:** This repository is shared as a code reference only. The database, API keys, and scraped data are private and not included — the project cannot be run directly without setting up your own data infrastructure. Feel free to use the code structure and implementation as a reference for building something similar.
 
+> **⚠️ Heads up on data freshness:** If you notice the data hasn't been updated in a while, it's most likely because I have run out of proxy credits — rotating proxies are needed to scrape Reddit without getting blocked, and they are not cheap to keep running. The pipeline itself is working fine!
+> 
 **Live demo:** https://ai-stocks-dashboard-production.up.railway.app/
 
 <p align="center">
