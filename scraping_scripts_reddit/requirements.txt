@@ -1,0 +1,9 @@
+asyncpg
+crawl4ai
+openai
+pandas
+numpy
+rank-bm25
+python-dotenv
+requests
+playwright

@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pandas
+openai
+sentence-transformers
+scikit-learn
+numpy
+pydantic
+python-dotenv
+asyncpg
+rank-bm25
+yfinance

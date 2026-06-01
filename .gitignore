@@ -1,0 +1,10 @@
+.env
+*.env
+.vscode/
+__pycache__/
+*.pyc
+*.tar
+*.tar.gz
+*.log
+*.csv
+.DS_Store

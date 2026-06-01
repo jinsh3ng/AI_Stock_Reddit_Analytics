@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <header>
+      <div class="logo">
+        <img class="reddit-img" src="/static/reddit_logo.png" alt="Reddit">
+      </div>
+      <div class="header-divider"></div>
+      <span class="header-title"><span style="color:#166534;">AI Stock</span> Reddit Analytics</span>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:16px;">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111827" stroke-width="2" style="flex-shrink:0;">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span style="font-size:11px; color:#111827; white-space:nowrap;">
+          Data Coverage:&nbsp;<strong id="dataEarliestDate" style="color:#111827;">—</strong>
+          &nbsp;to&nbsp;
+          <strong id="dataLatestDate" style="color:#111827;">—</strong>
+          <br>
+          <span style="font-size:9px; color:#9ca3af; font-style:italic;">Narrowed to Jun 2025 onwards for data reliability</span>
+        </span>
+      </div>
+      <div style="height:30px; width:1px; background:#e3e5ed;"></div>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" style="flex-shrink:0;">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+        </svg>
+        <span style="font-size:11px; color:#111827;">
+          Auto-scrape: <strong style="color:#16a34a;">Every Sunday, 12:00 AM</strong>
+        </span>
+      </div>
+    </div>
+      </div>
+    </header>
+
+    <!-- DATA CONFIGURATION -->
+    <div class="controls-bar">
+      <div class="control-group">
+        <span class="control-label">Choose date</span>
+        <select class="control-select" id="dateSelect" onchange="handleDateSelectChange()">
+          <option>All time</option>
+          <option>Last 3 months</option>
+          <option>Last 6 months</option>
+          <option disabled style="color:#e3e5ed; font-size:1px; background:#e3e5ed;">──────────────</option>
+          <option value="Custom">Custom range…</option>
+        </select>
+      </div>
+
+      <div id="customDateGroup" style="display:none; align-items:center; gap:6px; flex-wrap:nowrap;">
+        <span class="control-label" style="white-space:nowrap;">From</span>
+        <input type="date" id="customDateFrom" class="control-select"
+          style="padding:5px 8px; font-size:12px; font-family:inherit; cursor:pointer;"
+          onchange="handleCustomDateChange()">
+        <span class="control-label" style="white-space:nowrap;">To</span>
+        <input type="date" id="customDateTo" class="control-select"
+          style="padding:5px 8px; font-size:12px; font-family:inherit; cursor:pointer;"
+          onchange="handleCustomDateChange()">
+      </div>
+
+      <div class="control-group">
+        <span class="control-label">Filter by stock ticker</span>
+        <select class="control-select" id="stockTickerSelect" onchange="handleTickerSelectChange()" style="min-width:160px;">
+          <option value="">All stocks</option>
+          <option value="NVDA">NVDA — NVIDIA</option>
+          <option value="AMD">AMD — AMD</option>
+          <option value="MSFT">MSFT — Microsoft</option>
+          <option value="META">META — Meta</option>
+          <option value="GOOGL">GOOGL — Alphabet</option>
+          <option value="AMZN">AMZN — Amazon</option>
+          <option value="PLTR">PLTR — Palantir</option>
+          <option value="AVGO">AVGO — Broadcom</option>
+          <option value="TSM">TSM — TSMC</option>
+          <option value="AAPL">AAPL — Apple</option>
+          <option value="custom">Custom…</option>
+        </select>
+      </div>
+      <div id="customTickerGroup" style="display:none; align-items:center; gap:6px;">
+        <input type="text" id="stockFilterInput" class="control-select"
+          placeholder="Enter ticker…"
+          style="min-width:130px; padding:7px 12px; font-size:13px; font-family:inherit;"
+          onkeydown="if(event.key==='Enter') handleAnalyze()"/>
+      </div>
+
+      <button class="analyze-btn" id="analyzeBTN" onclick="handleAnalyze()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Analyze
+      </button>
+    </div>
+
+    <!-- TOP CHARTS ROW (always visible) -->
+    <div class="top-content">
+
+      <!-- Left: Volume bar chart -->
+      <div class="top-chart" id="topVolumeChart">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+          <span style="font-size:11px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.07em;">
+            Volume Analytics
+          </span>
+          <div id="groupByWrapper" style="display:none; align-items:center; gap:6px;">
+            <span style="font-size:11px; color:#6b7280;">Group by</span>
+            <select id="groupBySelect" onchange="handleAnalyze(false, true)"
+              style="font-size:11px; border:1px solid #e3e5ed; border-radius:5px; padding:3px 8px;
+                    color:#374151; background:#f9fafb; cursor:pointer; font-family:inherit;">
+              <option value="daily">Daily</option>
+              <option value="monthly">Monthly</option>
+              <option value="quarterly" selected>Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+        </div>
+        <div id="volumeChartTop" style="width:100%; flex:1; min-height:0;">
+          <div id="volumeChartPlaceholder" class="chart-placeholder" style="height:100%; min-height:unset;">
+            <svg width="28" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="12" width="4" height="8"/><rect x="9" y="8" width="4" height="12"/>
+              <rect x="15" y="4" width="4" height="16"/>
+            </svg>
+            Click Analyze to load
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Sentiment pie -->
+      <div class="top-chart" id="topSentimentPie" style="border-left:1px solid var(--border);">
+        <div style="margin-bottom:6px;">
+          <span style="font-size:11px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.07em;">
+            Sentiment Breakdown
+          </span>
+        </div>
+        <div id="sentimentPieTop" style="width:100%; flex:1; min-height:0; margin-top: 6px">
+          <div id="sentimentPiePlaceholder" class="chart-placeholder" style="height:100%; min-height:unset;">
+            <svg width="28" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+              <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+            </svg>
+            Click Analyze to load
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- END TOP CHARTS -->
+
+    <!-- CONTENT GRID -->
+    <div class="content-grid">
+
+      <!-- LEFT: Analytics Charts panel -->
+      <div class="charts-panel" id="chartsPanel">
+
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0;">
+          <div class="panel-title" style="margin-bottom:0;">Topics Analysis</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:11px; color:#6b7280;">Zoom into quarter</span>
+            <select id="quarterSelect" onchange="handleQuarterChange()"
+              style="font-size:11px; border:1px solid #e3e5ed; border-radius:5px; padding:3px 8px;
+                    color:#374151; background:#f9fafb; cursor:pointer; font-family:inherit;">
+              <option value="">All quarters</option>
+            </select>
+            <span id="quarterPostCount" style="font-size:11px; color:#9ca3af;"></span>
+          </div>
+          
+        </div>
+
+        <div class="chart-placeholder" id="chartPlaceholder">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          Select a date range, then click Analyze
+        </div>
+
+        <!-- Topics chart -->
+        <div id="topicsChart" style="display:none; width:100%; height:420px;"></div>
+
+        <!-- DRILL-DOWN PANEL -->
+        <div id="drilldownPanel" style="display:none; flex-direction:column; gap:10px;
+          padding:16px; background:#fff; border:1px solid #e3e5ed; border-radius:8px; margin-top:4px;">
+
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+              </svg>
+              <span style="font-size:11px; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:0.06em;">Drill into Sub-topics</span>
+            </div>
+            <button id="drillBackBtn" onclick="exitDrilldown()" style="display:none; align-items:center; gap:5px;
+              background:#f4f5f9; border:1px solid #e3e5ed; border-radius:6px;
+              padding:5px 11px; font-size:11px; font-weight:600; color:#374151;
+              cursor:pointer; font-family:inherit; transition:background 0.15s;">
+              ← Back to All Topics
+            </button>
+          </div>
+
+          <div id="drillBreadcrumb" style="display:none; font-size:11px; color:#6b7280; padding:2px 0;">
+            All Topics &nbsp;›&nbsp;
+            <strong id="drillBreadcrumbTopic" style="color:#166534;"></strong>
+          </div>
+
+          <div id="drillSelectRow" style="display:flex; align-items:center; gap:10px;">
+            <select id="drillTopicSelect" style="
+              flex:1; font-size:12px; font-family:inherit;
+              border:1px solid #e3e5ed; border-radius:6px;
+              padding:7px 32px 7px 12px; color:#374151; background:#f9fafb;
+              appearance:none; cursor:pointer; outline:none;
+              background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E&quot;);
+              background-repeat:no-repeat; background-position:right 10px center;">
+              <option value="">— Choose a topic to drill into —</option>
+            </select>
+            <button onclick="handleDrilldown()" style="
+              display:flex; align-items:center; gap:7px;
+              background:#166534; color:#ffffff; border:none; border-radius:6px;
+              padding:8px 16px; font-size:12px; font-weight:700; font-family:inherit;
+              cursor:pointer; white-space:nowrap;
+              box-shadow:0 2px 6px rgba(254,186,50,0.35);
+              transition:background 0.15s, transform 0.1s;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+              </svg>
+              Drill Down
+            </button>
+          </div>
+
+          <div id="subtopicsChart" style="display:none; width:100%; height:360px;"></div>
+        </div>
+        <!-- END DRILL-DOWN PANEL -->
+
+        <!-- EMERGING TOPICS PANEL -->
+        <div id="emergingPanel" style="display:none; flex-direction:column; gap:10px;
+          padding:16px; background:#fff; border:1px solid #e3e5ed; border-radius:8px; margin-top:4px;">
+
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+              </svg>
+              <span style="font-size:11px; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:0.06em;">Emerging Topics</span>
+            </div>
+            <span id="emergingPeriodLabel" style="font-size:11px; color:#6b7280;"></span>
+          </div>
+
+          <div id="emergingPlaceholder" style="display:flex; flex-direction:column; align-items:center;
+            justify-content:center; gap:8px; padding:20px; color:#9ca3af; font-size:12px; text-align:center;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            </svg>
+            Emerging topics will appear after topics load
+          </div>
+          <div id="emergingContent" style="display:none; flex-direction:column; gap:8px;"></div>
+        </div>
+        <!-- END EMERGING TOPICS PANEL -->
+
+        <!-- STOCK CHART PANEL -->
+        <div id="stockChartPanel" style="display:none; flex-direction:column; gap:10px;
+          padding:16px; background:#fff; border:1px solid #d1ddd4; border-radius:8px; margin-top:4px;">
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2.5">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="16 7 22 7 22 13"/>
+              </svg>
+              <span style="font-size:11px; font-weight:700; color:#374151; text-transform:uppercase; letter-spacing:0.06em;">Stock Price Chart</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span id="stockChartTitle" style="font-size:11px; color:#166534; font-weight:600;"></span>
+              <button onclick="clearChartMarkers()" style="font-size:10px; font-family:inherit; font-weight:600;
+                background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; border-radius:10px;
+                padding:2px 8px; cursor:pointer; display:none;" id="clearMarkersBtn">
+                Clear markers
+              </button>
+            </div>
+          </div>
+          <div id="stockChartContent"></div>
+        </div>
+        <!-- END STOCK CHART PANEL -->
+
+      </div>
+      <!-- END LEFT charts panel -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-column" id="topicsRightColumn">
+
+        <div class="genai-panel">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+            <div class="panel-title" style="margin-bottom:0;">GenAI Analysis</div>
+            <div class="genai-badge">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              DeepSeek AI
+            </div>
+          </div>
+          <div id="topicsGenaiPlaceholder" class="genai-placeholder">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            AI analysis will appear after topics load
+          </div>
+          <div id="topicsGenaiConversation" style="flex:1; overflow-y:auto; max-height:260px; display:none; flex-direction:column; gap:10px; padding:4px 2px;"></div>
+          <div id="topicsGenaiInputBar" style="display:none; gap:8px; align-items:center; margin-top:4px;">
+            <input id="topicsGenaiQuestion" type="text" placeholder="Ask a follow-up question..."
+              style="flex:1; font-size:12px; font-family:inherit; border:1px solid #e3e5ed;
+                     border-radius:6px; padding:7px 12px; color:#374151; outline:none; transition:border-color 0.15s;"
+              onfocus="this.style.borderColor='#166534'"
+              onblur="this.style.borderColor='#e3e5ed'"
+              onkeydown="if(event.key==='Enter') askTopicsGenAI()"/>
+            <button onclick="askTopicsGenAI()" style="background:var(--primary); color:#ffffff; border:none; border-radius:6px;
+              padding:7px 14px; font-size:12px; font-family:inherit; font-weight:600; cursor:pointer; white-space:nowrap;">
+              Ask
+            </button>
+          </div>
+        </div>
+
+        <div class="posts-panel">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+            <div class="panel-title" style="margin-bottom:0;">Posts &amp; Comments</div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:11px; color:#6b7280;">Sort by</span>
+              <select id="topicsSortSelect" onchange="reloadTopicsPosts()"
+                style="font-size:11px; border:1px solid #e3e5ed; border-radius:5px; padding:3px 8px; color:#374151; background:#f9fafb; cursor:pointer; font-family:inherit;">
+                <option value="upvotes">Most upvoted</option>
+                <option value="date">Most recent</option>
+              </select>
+            </div>
+          </div>
+          <div id="topicsPostsWrapper" style="display:block;">
+            <div class="posts-placeholder" id="topicsPostsPlaceholder">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Posts will appear after topics load
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- END RIGHT COLUMN -->
+
+    </div>
+    <!-- END content-grid -->
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="/static/app.js"></script>
+
+    <footer>AI Stock Reddit Analytics · Developed by Jinsheng</footer>
+  </body>
+</html>
