@@ -5,9 +5,7 @@
 > **⚠️ The live demo is no longer maintained** as it incurs ongoing costs across multiple services — Railway hosting, AWS EC2, and rotating proxy subscriptions. This project is intended to demonstrate what I am capable of building. A video demonstration is available below.
 
 <p align="center">
-  <a href="https://drive.google.com/file/d/1-0RK0JnayIR3x_GgEBIya5ZQMXgq3_-Z/view?usp=sharing">
-    <img width="1890" height="930" alt="Click to watch video demonstration" src="https://github.com/user-attachments/assets/6aca9c1d-36b1-437f-ac76-4b364474887f" />
-  </a>
+  <img width="1890" height="930" alt="image" src="https://github.com/user-attachments/assets/6aca9c1d-36b1-437f-ac76-4b364474887f" />
 </p>
 
 <p align="center">
