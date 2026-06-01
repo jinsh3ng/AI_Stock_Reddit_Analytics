@@ -24,7 +24,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 BATCH_SIZE             = int(os.getenv("BATCH_SIZE", "25"))
 BATCH_DELAY            = int(os.getenv("BATCH_DELAY", "60"))
 DELAY_BETWEEN_REQUESTS = int(os.getenv("DELAY_BETWEEN_REQUESTS", "2"))
-DATE_CUTOFF            = os.getenv("DATE_CUTOFF", "2023-01-01")
+DATE_CUTOFF            = os.getenv("DATE_CUTOFF", "2025-05-01")
 TABLE_NAME             = "raw_data"
 # ────────────────────────────────────────────────────────
 

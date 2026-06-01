@@ -104,7 +104,7 @@ async def load_data_from_db():
 
         df = pd.DataFrame([dict(r) for r in rows])
         df["date"] = pd.to_datetime(df["date"], errors="coerce")
-        df = df[df["date"] >= pd.Timestamp("2025-06-05")]
+        df = df[df["date"] >= pd.Timestamp("2025-05-01")]
         df = df.dropna(subset=["sentiment"])
         df = df[df["sentiment"].str.strip() != ""]
         df["_source"] = "reddit"
