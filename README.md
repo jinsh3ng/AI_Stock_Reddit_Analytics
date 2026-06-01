@@ -2,11 +2,15 @@
 
 > **Note:** This repository is shared as a code reference only. The database, API keys, and scraped data are private and not included — the project cannot be run directly without setting up your own data infrastructure. Feel free to use the code structure and implementation as a reference for building something similar.
 
-If you have any questions, feel free to contact me:
+**Live demo:** https://ai-stocks-dashboard-production.up.railway.app/
 
-- **Name:** Chong Jinsheng
-- **LinkedIn:** www.linkedin.com/in/jinsh3ng
-- **Email:** Jinsh3ng@hotmail.com
+<p align="center">
+  <img width="1890" height="930" alt="image" src="https://github.com/user-attachments/assets/6aca9c1d-36b1-437f-ac76-4b364474887f" />
+</p>
+
+If you have any questions or see anything that can be improved, feel free to reach out:
+
+**Chong Jinsheng** &nbsp;·&nbsp; [LinkedIn](https://www.linkedin.com/in/jinsh3ng) &nbsp;·&nbsp; Jinsh3ng@hotmail.com
 
 ---
 
@@ -22,9 +26,31 @@ This project consists of:
 
 The dashboard is deployed on Railway via Docker. The scraping pipeline runs on AWS EC2, automated weekly via a cron job.
 
+Data is filtered to show posts from **1 May 2025 onwards**. Earlier data was collected but excluded after EDA revealed inconsistent scraping coverage prior to this date.
+
+### Dashboard Features
+
+- **Volume analytics** — post and comment volume over time, grouped by day / month / quarter / year
+- **Sentiment breakdown** — bullish / bearish / neutral / mixed distribution as stacked bar and pie chart
+- **Unique authors** — overlaid line chart showing distinct poster count per period
+- **Topic analysis** — LLM-discovered topics coloured by sentiment, with drill-down into sub-topics
+- **Emerging topics** — topics gaining share quarter-over-quarter
+- **Stock price chart** — candlestick chart via yfinance, shown when a ticker filter is active
+- **Post markers** — mark individual posts directly onto the candlestick chart to correlate sentiment with price movement
+- **GenAI analysis** — DeepSeek summarises the topic breakdown and answers follow-up questions
+- **Stock ticker filter** — filter all posts, topics, and charts to a specific ticker (preset list + custom input)
+
 ---
 
-## 2. Repository Structure
+## 2. System Architecture
+
+<p align="center">
+  <img width="1253" height="580" alt="image" src="https://github.com/user-attachments/assets/7b338f3e-433a-44e0-ad6c-2245585d9ea9" />
+</p>
+
+---
+
+## 3. Repository Structure
 
 ```plaintext
 AI-Stock-Reddit-Analytics/
@@ -58,7 +84,7 @@ AI-Stock-Reddit-Analytics/
 
 ---
 
-## 3. Environment Variables
+## 4. Environment Variables
 
 Configure the `.env` file with the following credentials:
 
@@ -66,37 +92,77 @@ Configure the `.env` file with the following credentials:
 |---|---|---|
 | `DEEPSEEK_API_KEY` | Dashboard + scraping | Required for topic classification and sentiment analysis |
 | `DATABASE_URL` | Dashboard | PostgreSQL connection string |
-| `PROXY_SERVER` | Scraping pipeline | Rotating proxy server (e.g. Oxylabs) |
+| `PROXY_SERVER` | Scraping pipeline | Rotating proxy server |
 | `PROXY_USERNAME` | Scraping pipeline | Proxy credentials |
 | `PROXY_PASSWORD` | Scraping pipeline | Proxy credentials |
 | `AI_STOCKS_QUERIES` | Scraping pipeline | Comma-separated Reddit search queries |
 
 ---
 
-## 4. Pipeline Architecture
+## 5. Cloud Deployment
 
-The data flows through four stages from raw Reddit posts to dashboard-ready analytics:
+### Dashboard (Railway + Docker)
 
+The dashboard is containerised with Docker and deployed on Railway. The pre-built image is available on Docker Hub — you do not need to build it yourself.
+
+**1. Set up PostgreSQL on Railway:**
+- New Project → Add PostgreSQL plugin
+- Railway will provision a database and provide a `DATABASE_PUBLIC_URL` — use this as your `DATABASE_URL` environment variable
+
+**2. Deploy the dashboard:**
+- New Project → Deploy from Docker image → enter `jinsh3ng/ai-stocks-dashboard:latest`
+- Go to Variables tab → add `DATABASE_URL` and `DEEPSEEK_API_KEY`
+- Go to Settings → Networking → Generate Domain → set port to `8000`
+
+**3. Populate the database:**
+- Once PostgreSQL and the dashboard are running, set up the scraping pipeline on EC2 (see below) and run it at least once to populate the database
+- The dashboard will show data after the first successful pipeline run
+
+### Scraping Pipeline (AWS EC2)
+
+The scraping pipeline runs on AWS EC2 rather than Railway because a full run takes several hours — Railway enforces short execution limits.
+
+**1. Launch an EC2 instance:**
+- AMI: Ubuntu 22.04 LTS
+- Instance type: `t3.small` (2 vCPU, 2GB RAM)
+- Storage: 20GB
+- Open port 22 (SSH) in the security group
+
+**2. Set up the environment:**
+```bash
+ssh -i "your-key.pem" ubuntu@your-ec2-ip
+sudo apt update && sudo apt install -y python3-pip python3-venv libxml2-dev libxslt1-dev
+mkdir ~/ai-stocks && cd ~/ai-stocks
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+playwright install chromium && playwright install-deps chromium
 ```
-Step 1 — Scrape URLs
-  Reddit search queries → reddit_posts_urls table
 
-Step 2 — Extract content
-  Post URLs → full post + comment content → raw_data table
+**3. Copy scripts and configure `.env`:**
+```bash
+# From your local machine
+scp -i "your-key.pem" -r ./scraping_scripts/ ubuntu@your-ec2-ip:~/ai-stocks/
+scp -i "your-key.pem" .env ubuntu@your-ec2-ip:~/ai-stocks/
+```
 
-Step 3 — Update dates
-  Backfill post dates from raw_data into reddit_posts_urls
+**4. Run the pipeline:**
+```bash
+source ~/ai-stocks/venv/bin/activate
+nohup ~/ai-stocks/venv/bin/python -u run_pipeline.py >> ~/ai-stocks/pipeline.log 2>&1 &
+tail -f ~/ai-stocks/pipeline.log
+```
 
-Step 4 — Classify
-  BM25 relevance filter → DeepSeek sentiment classification → cleaned_data_ai_stocks table
-
-Dashboard
-  FastAPI reads cleaned_data_ai_stocks → serves analytics to frontend
+**5. Schedule weekly via cron:**
+```bash
+crontab -e
+# Add this line — runs every Monday at 9am UTC
+0 9 * * 1 /home/ubuntu/ai-stocks/venv/bin/python -u /home/ubuntu/ai-stocks/run_pipeline.py >> /home/ubuntu/ai-stocks/pipeline.log 2>&1
 ```
 
 ---
 
-## 5. Algorithms
+## 6. Algorithms
 
 ### Large Language Models
 
@@ -133,14 +199,14 @@ When a user filters by a specific ticker (e.g. NVDA), BM25 relevance scoring is 
 
 ---
 
-## 6. Scraping Pipeline
+## 7. Scraping Pipeline
 
 The pipeline collects Reddit posts and comments about AI stocks, processes the content, filters irrelevant posts, and stores the results in PostgreSQL.
 
 | Step | Script | Description |
 |---|---|---|
 | 1 | `step1_scrape_urls.py` | Crawl Reddit search results for each keyword query, extract post URLs |
-| 2 | `step2_extract_content.py` | Fetch full post + comment content via Reddit's JSON API |
+| 2 | `step2_extract_content.py` | Fetch full post + comment content by appending `.json` to each Reddit post URL |
 | 3 | `step3_update_dates.py` | Backfill post dates from raw data into the URL index table |
 | 4 | `step4_classify.py` | BM25 pre-filter → DeepSeek relevance + sentiment classification → store in cleaned table |
 
@@ -150,7 +216,7 @@ Reddit search result pages are crawled for each query in `AI_STOCKS_QUERIES`. Po
 
 ### Step 2 — Extract Content
 
-Full post and comment content is fetched via Reddit's `.json` endpoint for each URL. Rotating proxies are used to reduce the likelihood of rate limiting. Output is stored in `raw_data`.
+Full post and comment content is fetched by appending `.json` to each Reddit post URL, which returns the raw post data in JSON format. Rotating proxies are used to reduce the likelihood of rate limiting. Output is stored in `raw_data`.
 
 ### Step 3 — Incremental Updates
 
@@ -162,75 +228,15 @@ Raw posts are first scored by BM25 against the keyword query list to remove obvi
 
 ---
 
-## 7. Cloud Deployment
-
-### Dashboard (Railway + Docker)
-
-The dashboard is containerised with Docker and deployed on Railway.
-
-```bash
-# Build image
-docker build -t ai-stocks-dashboard .
-
-# Push to Docker Hub
-docker tag ai-stocks-dashboard yourusername/ai-stocks-dashboard:latest
-docker push yourusername/ai-stocks-dashboard:latest
-```
-
-On Railway: New Project → Deploy from Docker image → enter your Docker Hub image name → add environment variables in the Variables tab → generate a public domain under Settings → Networking.
-
-### Scraping Pipeline (AWS EC2)
-
-The scraping pipeline is deployed on AWS EC2 rather than Railway because a full run takes several hours — Railway enforces short execution limits.
-
-The pipeline runs on a `t3.small` Ubuntu 22.04 instance, triggered weekly via a cron job:
-
-```bash
-# SSH in and activate venv
-ssh -i "your-key.pem" ubuntu@your-ec2-ip
-source ~/ai-stocks/venv/bin/activate
-
-# Run manually
-nohup ~/ai-stocks/venv/bin/python -u run_pipeline.py >> ~/ai-stocks/pipeline.log 2>&1 &
-
-# Watch logs
-tail -f ~/ai-stocks/pipeline.log
-```
-
-Weekly cron (every Monday 9am UTC):
-```
-0 9 * * 1 /home/ubuntu/ai-stocks/venv/bin/python -u /home/ubuntu/ai-stocks/run_pipeline.py >> /home/ubuntu/ai-stocks/pipeline.log 2>&1
-```
-
----
-
-## 8. Dashboard Features
-
-- **Volume analytics** — post and comment volume over time, grouped by day / month / quarter / year
-- **Sentiment breakdown** — bullish / bearish / neutral / mixed distribution as stacked bar and pie chart
-- **Unique authors** — overlaid line chart showing distinct poster count per period
-- **Topic analysis** — LLM-discovered topics coloured by sentiment, with drill-down into sub-topics
-- **Emerging topics** — topics gaining share quarter-over-quarter
-- **Stock price chart** — candlestick chart via yfinance, shown when a ticker filter is active
-- **Post markers** — mark individual posts directly onto the candlestick chart to correlate sentiment with price movement
-- **GenAI analysis** — DeepSeek summarises the topic breakdown and answers follow-up questions
-- **Stock ticker filter** — filter all posts, topics, and charts to a specific ticker (preset list + custom input)
-
----
-
-## 9. Further Improvements
+## 8. Further Improvements
 
 ### Additional Data Sources
 
 Currently the project scrapes Reddit only. Other platforms such as X (Twitter), StockTwits, or financial news sites could be integrated to broaden coverage and reduce platform-specific bias.
 
-### Sentiment Accuracy
+### Classification Accuracy
 
-The current DeepSeek classification performs well but could be further validated against a manually labelled ground truth dataset for more rigorous accuracy measurement.
-
-### Real-time Scraping
-
-The current pipeline runs weekly. Moving to near-real-time scraping (hourly or daily) would make the dashboard more responsive to fast-moving market events.
+The current DeepSeek classification performs well but could be further validated against a manually labelled ground truth dataset for more rigorous accuracy measurement across relevance, sentiment, and topic assignment.
 
 ### Price Correlation Analysis
 
