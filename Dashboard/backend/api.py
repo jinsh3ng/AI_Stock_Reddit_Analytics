@@ -721,7 +721,7 @@ Return ONLY raw JSON array: ["Sub-topic 1", "Sub-topic 2", ...]"""
         df_topic["subtopic"] = assigned
 
         tw = df_topic["subtopic"].value_counts().sort_values(ascending=True)
-        sentiments      = ["bearish", "mixed", "neutral", "bullish"]
+        sentiments = ["negative", "mixed", "neutral", "positive"]
         topic_sentiment = pd.crosstab(df_topic["subtopic"], df_topic["sentiment"])
         topic_sentiment = topic_sentiment.reindex(
             index=tw.index,
