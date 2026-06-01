@@ -183,24 +183,26 @@ crontab -e
 The instance boots up, waits 60 seconds to fully initialise, runs the pipeline, then shuts itself down automatically — so it only incurs cost during the scraping window.
 
 **7. Schedule weekly via EventBridge + Lambda:**
-
+ 
 Use AWS EventBridge to trigger a Lambda function every Monday that starts the EC2 instance. The startup script then handles the rest automatically.
-
-Lambda function:
+ 
+Lambda function (Python runtime, requires `ec2:StartInstances` IAM permission):
 ```python
 import boto3
-
+ 
 def lambda_handler(event, context):
     ec2 = boto3.client('ec2', region_name='your-region')
     ec2.start_instances(InstanceIds=['your-instance-id'])
     return {'statusCode': 200, 'body': 'EC2 started'}
 ```
-
-EventBridge cron expression (every Monday at 9am UTC):
+ 
+EventBridge cron expression (every Sunday at 12am SGT):
 ```
-cron(0 9 ? * MON *)
+cron(0 16 ? * SUN *)
 ```
-
+ 
+> The exact setup involves a few steps across Lambda, IAM, and EventBridge — some experimentation may be needed depending on your AWS configuration.
+ 
 ---
 
 ## 6. Algorithms
