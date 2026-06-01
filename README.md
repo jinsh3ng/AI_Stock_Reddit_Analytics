@@ -180,7 +180,7 @@ crontab -e
 @reboot /home/ubuntu/ai-stocks/startup.sh
 ```
 
-The instance boots up, waits 30 seconds to fully initialise, runs the pipeline, then shuts itself down automatically — so it only incurs cost during the scraping window.
+The instance boots up, waits 60 seconds to fully initialise, runs the pipeline, then shuts itself down automatically — so it only incurs cost during the scraping window.
 
 **7. Schedule weekly via EventBridge + Lambda:**
 
